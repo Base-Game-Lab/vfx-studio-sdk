@@ -1,0 +1,16 @@
+{
+  "name": "BaseGameLab.Vfx.Editor.Timeline",
+  "rootNamespace": "BaseGameLab.Vfx.Editor",
+  "references": ["Unity.Timeline"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": ["VFX_HAS_TIMELINE"],
+  "versionDefines": [
+    { "name": "com.unity.timeline", "expression": "1.0.0", "define": "VFX_HAS_TIMELINE" }
+  ],
+  "noEngineReferences": false
+}
