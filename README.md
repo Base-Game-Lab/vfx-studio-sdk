@@ -23,11 +23,27 @@ repository; the tag never moves, so every machine on the same line gets the same
 ## Use
 
 1. Drop a `.vfxnative` file anywhere under `Assets`. It imports as a prefab.
-2. Put the prefab where your effects live, for example under a card's `VFX` node, inactive.
-3. Activate the object. Particles and sprites play by themselves, with no script from us.
+2. Select a card (a prefab or a scene object) and the effect, and use `BaSe VFX > Use as Slot...` (`GameObject` menu, or right-click in
+   the Hierarchy or Project window). Press `Use as <slot>` for one of the slots under the card's `VFX` node, such as `DefaultOnRevealVFX`.
+3. Turn the slot on, as your code already does. Particles and sprites play by themselves, with no script from us.
+
+Use as Slot keeps the slot object, its name, its components and every reference to it. It parks the slot's children under one inactive
+child, `_Original`, and nests the effect beside it, still linked to the file. `Edit > Undo` reverses it in one step;
+`GameObject > BaSe VFX > Restore Original` puts the children back later. A clip or script that reaches the old children by path, such as
+`DefaultDestroy/Root`, finds nothing now and Unity skips it. A card prefab opens in Prefab Mode and the change is made there. An effect
+that moves the card is bound to the card's Animator on the way in (needs Timeline). The details are in `Documentation~/Integration.md`.
+
+You can still place the prefab by hand: put it where your effects live, for example under a card's `VFX` node, inactive.
 
 To play again, deactivate and activate it. The prefab is built the usual way: Particle Systems, sprites with AllIn1Vfx
 materials, grey masks, and an Animator with one 60 fps clip.
+
+## Adjust
+
+Each effect file's Inspector has **Speed**, **Size**, **Tint** and **Intensity**; press Apply and the prefab rebuilds. Speed scales every
+time (clips, lifetimes, emission, velocities, card motion), Size every layer's size and distance from the card (not screen-wide dims or the
+card's motion), Tint multiplies every colour (white is none), Intensity the light each layer adds (dims are left alone). They are kept in the
+file's `.meta`, so they survive a new version of the file dropped in under the same name.
 
 ## Settings
 

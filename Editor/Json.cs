@@ -13,6 +13,8 @@ namespace BaseGameLab.Vfx.Editor
         public J(object value) { this.value = value; }
 
         public bool Exists => value != null;
+        /// <summary>The parsed value itself, for the one place that rewrites a document before it is built.</summary>
+        internal object Raw => value;
         public J this[string key] => value is Dictionary<string, object> d && d.TryGetValue(key, out var v) ? new J(v) : default;
         public J this[int index] => value is List<object> l && index < l.Count ? new J(l[index]) : default;
         public int Count => value is List<object> l ? l.Count : 0;

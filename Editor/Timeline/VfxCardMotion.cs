@@ -51,6 +51,19 @@ namespace BaseGameLab.Vfx.Editor
             return MotionClip(SourcePath(effect)) == null ? "This effect has no card motion." : null;
         }
 
+        /// <summary>The Animator the motion clip's paths start from: the nearest one above the effect that holds every path. A slot or
+        /// part of the card can carry its own Animator; that one is skipped. With none holding the paths, the nearest Animator.</summary>
+        public static Animator CardAnimator(GameObject effect, AnimationClip clip)
+        {
+            var paths = AnimationUtility.GetCurveBindings(clip).Select(b => b.path).Distinct().ToArray();
+            for (var t = effect.transform.parent; t != null; t = t.parent)
+            {
+                var animator = t.GetComponent<Animator>();
+                if (animator != null && paths.All(p => p.Length == 0 || t.Find(p) != null)) return animator;
+            }
+            return effect.transform.parent.GetComponentInParent<Animator>();
+        }
+
         /// <summary>Adds the director to a placed effect and binds it to the Animator above. Safe to run again.</summary>
         public static PlayableDirector Bind(GameObject effect)
         {
@@ -74,9 +87,9 @@ namespace BaseGameLab.Vfx.Editor
             if (director == null) director = Undo.AddComponent<PlayableDirector>(effect);
             director.playableAsset = timeline;
             director.playOnAwake = true;
-            director.extrapolationMode = DirectorWrapMode.None;
+            director.extrapolationMode = clip.isLooping ? DirectorWrapMode.Loop : DirectorWrapMode.None; // a looping effect keeps the card moving with it
             var track = timeline.GetOutputTracks().OfType<AnimationTrack>().First();
-            director.SetGenericBinding(track, effect.transform.parent.GetComponentInParent<Animator>());
+            director.SetGenericBinding(track, CardAnimator(effect, clip));
             EditorUtility.SetDirty(director);
             return director;
         }

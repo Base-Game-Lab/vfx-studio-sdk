@@ -21,6 +21,7 @@ namespace BaseGameLab.Vfx.Editor
         readonly Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
         readonly Dictionary<string, Texture2D> ramps = new Dictionary<string, Texture2D>();
         readonly VfxLight light;
+        readonly VfxKnobs knobs;
 
         string effectName;
         float duration, unitsPerPx;
@@ -29,9 +30,13 @@ namespace BaseGameLab.Vfx.Editor
         AnimationClip clip, motionClip;
         int orderBehindNext, orderFrontNext;
 
-        public VfxBuilder(AssetImportContext ctx, J doc, VfxNativeSettings settings, Shader shader, VfxReport report)
+        public VfxBuilder(AssetImportContext ctx, J doc, VfxNativeSettings settings, Shader shader, VfxReport report, VfxKnobs knobs)
         {
             this.ctx = ctx;
+            this.knobs = knobs;
+            // Speed and tint are applied to the parsed file itself, before anything reads a time or a colour.
+            VfxAdjust.Speed(doc, knobs.speed);
+            VfxAdjust.Tint(doc, knobs.tint);
             this.doc = doc;
             this.settings = settings;
             this.shader = shader;
@@ -73,6 +78,7 @@ namespace BaseGameLab.Vfx.Editor
                 report.Dropped.Add($"{d["what"].S()}{t}: {d["why"].S()}");
             }
             report.Built.Add($"{emitters} particle systems, {quads} sprites, plays when activated, {duration:0.##}s at 60 fps.");
+            if (!knobs.IsDefault) report.Built.Add($"Adjusted in its import settings: {knobs.Describe()}.");
             ctx.AddObjectToAsset("prefab", root);
             ctx.SetMainObject(root);
         }
@@ -97,7 +103,10 @@ namespace BaseGameLab.Vfx.Editor
 
         // ---- shared pieces ------------------------------------------------
 
-        public float Units(float px) => px * unitsPerPx;
+        /// <summary>Plate px to the prefab's local units, with the Size adjustment. Screen-wide layers and card motion use <see cref="ScreenUnits"/>.</summary>
+        public float Units(float px) => px * unitsPerPx * knobs.size;
+        /// <summary>Without the Size adjustment: a dim still covers the screen and the card still moves as authored.</summary>
+        float ScreenUnits(float px) => px * unitsPerPx;
         public float Duration => duration;
         public bool Looping => doc["effect"]["loop"].B();
         public J Curve(string id) => doc["curves"][id];
@@ -110,12 +119,22 @@ namespace BaseGameLab.Vfx.Editor
         /// <summary>Plate px to prefab space: origin at the anchor's centre, y up.</summary>
         public Vector3 Place(Vector2 px) => new Vector3(Units(px.x - origin.x), -Units(px.y - origin.y), 0);
 
-        public GameObject Child(string id, Vector2 platePos)
+        public GameObject Child(string id, Vector2 platePos) => Child(id, Place(platePos));
+
+        GameObject Child(string id, Vector3 local)
         {
             var go = new GameObject(id);
             go.transform.SetParent(root.transform, false);
-            go.transform.localPosition = Place(platePos);
+            go.transform.localPosition = local;
             return go;
+        }
+
+        /// <summary>Intensity scales the light a layer adds: the shader multiplies its final alpha by _Alpha, and an additive layer adds
+        /// colour x alpha. An alpha-blended layer is at most fully opaque, so above 1 only additive layers get brighter.</summary>
+        void Intensity(Material mat, string blend)
+        {
+            if (knobs.intensity == 1 || !mat.HasProperty("_Alpha")) return;
+            mat.SetFloat("_Alpha", blend == "add" ? knobs.intensity : Mathf.Min(knobs.intensity, 1));
         }
 
         int Queue(string sort) => sort == "behind" ? settings.queueBehind : settings.queueFront;
@@ -131,6 +150,7 @@ namespace BaseGameLab.Vfx.Editor
             else if (m["blend"].S() != "add" && m["ramp"].Exists) VfxMaterials.AddRamp(mat, ramps[m["ramp"].S()]);
             if (m["clip"].Exists) VfxMaterials.AddClip(mat, Mask(m["clip"].S()));
             if (m["glow"].F() > 0 && !coloured) VfxMaterials.AddGlow(mat, m["glow"].F());
+            Intensity(mat, m["blend"].S());
             ctx.AddObjectToAsset("mat_" + layerId, mat);
             return mat;
         }
@@ -262,10 +282,13 @@ namespace BaseGameLab.Vfx.Editor
             var id = l["id"].S();
             var hasMask = l["mask"].Exists;
             var tex = hasMask ? Mask(l["mask"].S()) : Fill();
-            var go = Child(id, plate / 2);
+            var centre = plate / 2 - origin;
+            var go = Child(id, new Vector3(ScreenUnits(centre.x), -ScreenUnits(centre.y), 0));
             var mat = VfxMaterials.Create("mat_" + id, shader, l["blend"].S(), tex, Queue(l["sort"].S()));
             bool add = l["blend"].S() == "add";
             if (add) LightRamp(id, mat, VfxConvert.Flat(VfxConvert.Hex(l["color"].S("#ffffff"))), Alphas(l["tracks"]["alpha"]));
+            // A dim takes light away rather than adding it, so intensity leaves black layers alone.
+            if (add || VfxConvert.Hex(l["color"].S("#000000")).maxColorComponent > 0) Intensity(mat, l["blend"].S());
             ctx.AddObjectToAsset("mat_" + id, mat);
             var sr = AddSprite(go, SpriteOf(hasMask ? l["mask"].S() : "_fill", tex), mat, l["sort"].S());
             sr.color = add ? Color.white : VfxConvert.Hex(l["color"].S("#000000"));
@@ -273,7 +296,7 @@ namespace BaseGameLab.Vfx.Editor
             // shape, and 1.15 left a vignette at a third of its darkness at the plate's edge.
             float over = hasMask ? 1f : 4f;
             // Flat colour only: a shaped mask belongs to the frame the effect was made in, and its edges would land off screen.
-            var screen = !hasMask && settings.screenSize.x > 0 ? settings.screenSize : new Vector2(Units(plate.x), Units(plate.y));
+            var screen = !hasMask && settings.screenSize.x > 0 ? settings.screenSize : new Vector2(ScreenUnits(plate.x), ScreenUnits(plate.y));
             go.transform.localScale = new Vector3(screen.x * over, screen.y * over, 1);
             if (add && !light.Straight) LightTrack(id, sr, l["tracks"]["alpha"]);
             else if (add || sr.color.maxColorComponent > 0) AlphaTrack(id, sr, l["tracks"]["alpha"], null);
@@ -333,8 +356,8 @@ namespace BaseGameLab.Vfx.Editor
             void Add(string property, AnimationCurve c) =>
                 AnimationUtility.SetEditorCurve(motionClip, EditorCurveBinding.FloatCurve(path, typeof(Transform), property), c);
 
-            if (t["x"].Exists) Add("m_LocalPosition.x", ToClip(t["x"], Units, Units(1)));
-            if (t["y"].Exists) Add("m_LocalPosition.y", ToClip(t["y"], v => -Units(v), -Units(1)));
+            if (t["x"].Exists) Add("m_LocalPosition.x", ToClip(t["x"], ScreenUnits, ScreenUnits(1)));
+            if (t["y"].Exists) Add("m_LocalPosition.y", ToClip(t["y"], v => -ScreenUnits(v), -ScreenUnits(1)));
             if (t["scale"].Exists)
                 foreach (var axis in new[] { "x", "y", "z" })
                     Add("m_LocalScale." + axis, ToClip(t["scale"]));

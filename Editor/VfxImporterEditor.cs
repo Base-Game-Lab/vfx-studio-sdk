@@ -16,6 +16,12 @@ namespace BaseGameLab.Vfx.Editor
                 var style = new GUIStyle(EditorStyles.helpBox) { wordWrap = true, fontSize = 12 };
                 EditorGUILayout.LabelField(note.text, style);
             }
+            serializedObject.Update();
+            EditorGUILayout.LabelField("Adjust", EditorStyles.boldLabel);
+            foreach (var name in new[] { "speed", "size", "tint", "intensity" })
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(name));
+            serializedObject.ApplyModifiedProperties();
+            EditorGUILayout.Space();
             // Delayed: creating assets inside an inspector's GUI pass breaks its layout.
             if (GUILayout.Button("Make Editable"))
                 EditorApplication.delayCall += () => VfxMakeEditable.Export(path);

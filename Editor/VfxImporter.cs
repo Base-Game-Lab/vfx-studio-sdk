@@ -9,10 +9,22 @@ namespace BaseGameLab.Vfx.Editor
 {
     /// <summary>Imports a .vfxnative file as a prefab. The prefab and everything it uses are read-only sub-assets of that file.</summary>
     // Raise the version whenever imported output changes: Unity re-imports on it, not on a code change.
-    [ScriptedImporter(15, "vfxnative", 0)] // default queue, before prefabs: a card prefab nesting this effect logs a missing-nested-prefab error on a clean Library otherwise. The shader is a declared dependency, so it still imports first.
+    [ScriptedImporter(16, "vfxnative", 0)] // default queue, before prefabs: a card prefab nesting this effect logs a missing-nested-prefab error on a clean Library otherwise. The shader is a declared dependency, so it still imports first.
     public sealed class VfxImporter : ScriptedImporter
     {
         internal const string NoteId = "notes";
+
+        // Adjustments. They live in this file's .meta, so replacing the .vfxnative with a new version under the same name keeps them.
+        [Tooltip("Plays the whole effect this many times faster: clips, particle lifetimes, emission and velocities. 2 takes half the time.")]
+        [Min(0.05f)] public float speed = 1;
+        [Tooltip("Scales every layer's size and its distance from the card. Screen-wide dims and the card's own motion stay as they are.")]
+        [Min(0.05f)] public float size = 1;
+        [Tooltip("Multiplies every colour in the effect. White changes nothing; black stays black.")]
+        [ColorUsage(false)] public Color tint = Color.white;
+        [Tooltip("Multiplies the light each layer adds. Dims are left alone. Above 1 only the glowing layers get brighter.")]
+        [Range(0, 2)] public float intensity = 1;
+
+        internal VfxKnobs Knobs => new VfxKnobs { speed = speed > 0 ? speed : 1, size = size > 0 ? size : 1, tint = tint, intensity = Mathf.Max(0, intensity) };
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
@@ -55,7 +67,7 @@ namespace BaseGameLab.Vfx.Editor
 
             try
             {
-                new VfxBuilder(ctx, doc, settings, shader, report).Build();
+                new VfxBuilder(ctx, doc, settings, shader, report, Knobs).Build();
             }
             catch (FormatException e)
             {
