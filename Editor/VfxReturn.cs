@@ -35,8 +35,32 @@ namespace BaseGameLab.Vfx.Editor
                 var files = imported.Where(p => p.EndsWith(".vfxnative", StringComparison.OrdinalIgnoreCase)).ToArray();
                 if (files.Length == 0) return;
                 // after the import has finished: placing changes scenes and prefabs, which an import must not
-                EditorApplication.delayCall += () => { foreach (var f in files) Place(f, once: true); };
+                EditorApplication.delayCall += () => { foreach (var f in files) Place(Supersede(f), once: true); };
             }
+        }
+
+        /// <summary>A newer export of an effect that already lives in a folder of its own (an effect that moves the card is moved into
+        /// "&lt;folder&gt;/&lt;Effect&gt;/" when it is placed) replaces that file instead of becoming a second copy beside it: its content is written
+        /// over the existing file, which keeps its GUID, its .meta and the Inspector settings in it, and the dropped copy is deleted.
+        /// Returns the path to place: the existing file's when it took over, else the dropped one's.</summary>
+        public static string Supersede(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) return path;
+            string effect;
+            try { effect = Json.Parse(File.ReadAllText(path))["effect"]["name"].S(); }
+            catch (FormatException) { return path; }
+            if (string.IsNullOrEmpty(effect)) return path;
+            // the folder name VfxCardMotion.IntoOwnFolder gives an effect
+            var folder = new string(effect.Select(c => Path.GetInvalidFileNameChars().Contains(c) || c == '/' ? '_' : c).ToArray()).Trim();
+            var dir = Path.GetDirectoryName(path).Replace('\\', '/');
+            if (folder.Length == 0 || Path.GetFileName(dir) == folder) return path;
+            var target = $"{dir}/{folder}/{Path.GetFileName(path)}";
+            if (!File.Exists(target) || string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(target))) return path;
+            File.Copy(path, target, true);
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.ImportAsset(target, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+            Debug.Log($"{Path.GetFileName(path)} is a newer version of {target}: it replaced that file, which keeps its settings and links.");
+            return target;
         }
 
         internal static string Key(string path) => $"BaseGameLab.Vfx.Return.{PlayerSettings.productGUID}.{AssetDatabase.AssetPathToGUID(path)}";

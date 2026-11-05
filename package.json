@@ -1,6 +1,6 @@
 {
   "name": "com.basegamelab.vfx",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "displayName": "BaSe Game Lab VFX",
   "description": "Imports .vfxnative effects from VFX Studio as normal prefabs of Particle Systems, sprites and Animators. Editor only: nothing of ours ships in your game.",
   "unity": "6000.0",

@@ -7,13 +7,13 @@ only.
 ## Steps
 
 1. **Install.** In Unity, `Window > Package Manager`, `+`, `Install package from git URL...` with
-   `https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.8`, or add one line to `Packages/manifest.json`, under `dependencies`:
+   `https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.9`, or add one line to `Packages/manifest.json`, under `dependencies`:
 
-       "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.8",
+       "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.9",
 
    The repository is public, so no GitHub sign-in is needed, only `git`. Its use is licensed: see `LICENSE.md`. To update,
-   change the tag, for example to `#v0.3.9`. A machine without git can use the tarball we send instead:
-   `"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.8.tgz"`, with the file in `Packages`.
+   change the tag, for example to `#v0.3.10`. A machine without git can use the tarball we send instead:
+   `"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.9.tgz"`, with the file in `Packages`.
 2. **Drop in the effect.** Drag the `.vfxnative` file into the Project window, anywhere under `Assets`. It imports as a prefab with the file's name.
 3. **Put it in a slot.** In the Hierarchy, right-click the slot under the card's `VFX` node, such as `DefaultOnRevealVFX`, and choose
    `BaSe VFX > Import from Studio...`. The window is for that slot only. It lists the `.vfxnative` effects already in the project,

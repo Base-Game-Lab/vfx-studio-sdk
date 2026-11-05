@@ -75,8 +75,27 @@ namespace BaseGameLab.Vfx.Editor
             var size = new FileInfo(path).Length / (1024f * 1024f);
             Debug.Log($"Captured {slot.name}: {m.frames} frames, {m.parts} parts, {size:0.0} MB.{notes} Drop {Path.GetFileName(path)} on VFX Studio.");
             var url = EditorPrefs.GetString(StudioPref, StudioDefault);
+            var shown = new List<string>(m.unseen);
+            var behind = BehindIn(m.manifest);
+            if (behind.Count > 0)
+            {
+                // the capture leaves another card at this spot out of the board; in the scene it is still there, and shows through any effect
+                // that moves, tilts or scales this card
+                var said = $"{string.Join(", ", behind)} sits at the same place as {card.name} in this scene. An effect that moves this card will show it behind, here in the editor; in the game only one card is usually there.";
+                Debug.LogWarning(said, card);
+                shown.Insert(0, said);
+            }
             // a window, not a dialog: it stays open, so the studio and the folder can both be opened from it
-            VfxCaptureReady.Show(path, card.name, slot.name, m.frames, m.parts, size, m.unseen, url);
+            VfxCaptureReady.Show(path, card.name, slot.name, m.frames, m.parts, size, shown, url);
+        }
+
+        /// <summary>The other cards the capture left off the board because they draw where the captured card does (plate.backgroundHidden).</summary>
+        internal static List<string> BehindIn(string manifest)
+        {
+            var list = new List<string>();
+            try { foreach (var p in Json.Parse(manifest)["plate"]["backgroundHidden"].Items) if (p.S() is string s) list.Add(s.Split('/').Last()); }
+            catch (FormatException) { }
+            return list;
         }
 
         static string Safe(string s) => new string(s.Select(c => char.IsLetterOrDigit(c) || c == '-' || c == '_' ? c : '_').ToArray());
