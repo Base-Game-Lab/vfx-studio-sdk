@@ -6,25 +6,25 @@ Effects from VFX Studio, as normal Unity prefabs. This package is editor only: n
 
 In Unity, open `Window > Package Manager`, press `+`, choose `Install package from git URL...` and paste:
 
-    https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.6
+    https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.7
 
 Or add one line to `Packages/manifest.json`, under `dependencies`:
 
-    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.6",
+    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.7",
 
 The repository is public, so no GitHub account or sign-in is needed; Unity only needs `git` installed. The same goes for any build
 machine. Being public grants no rights to use it: see License below.
 
 Check it worked: the Package Manager lists `BaSe Game Lab VFX` with the version you asked for.
 
-No git on a machine: we send `com.basegamelab.vfx-0.3.6.tgz`; copy it to `Packages` and use
-`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.6.tgz"` instead.
+No git on a machine: we send `com.basegamelab.vfx-0.3.7.tgz`; copy it to `Packages` and use
+`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.7.tgz"` instead.
 
 AllIn1Vfx Toolkit must be in the project. Materials reference its shader; the package does not bundle it.
 
 ## Update
 
-Change the tag at the end of the line, for example `#v0.3.2` to `#v0.3.6`, and return to Unity (or press `Update` on the package in
+Change the tag at the end of the line, for example `#v0.3.2` to `#v0.3.7`, and return to Unity (or press `Update` on the package in
 the Package Manager). Each version is a tag on this
 repository; the tag never moves, so every machine on the same line gets the same package.
 
@@ -54,7 +54,8 @@ Use as Slot keeps the slot object, its name, its components and every reference 
 child, `_Original`, and nests the effect beside it, still linked to the file. `Edit > Undo` reverses it in one step;
 `GameObject > BaSe VFX > Restore Original` puts the children back later. A clip or script that reaches the old children by path, such as
 `DefaultDestroy/Root`, finds nothing now and Unity skips it. A card prefab opens in Prefab Mode and the change is made there. An effect
-that moves the card is bound to the card's Animator on the way in (needs Timeline). The details are in `Documentation~/Integration.md`.
+that moves the card is bound to the card's Animator on the way in (needs Timeline); its Timeline is a second file, so the effect
+moves into a folder named after it with the Timeline beside it, keeping its GUID and every reference. The details are in `Documentation~/Integration.md`.
 
 You can still place the prefab by hand: put it where your effects live, for example under a card's `VFX` node, inactive.
 

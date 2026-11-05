@@ -64,6 +64,25 @@ namespace BaseGameLab.Vfx.Editor
             return effect.transform.parent.GetComponentInParent<Animator>();
         }
 
+        /// <summary>An effect that moves the card needs a second file, its Timeline. So that the two stay together, a .vfxnative not
+        /// already in a folder named after its effect moves into one (made beside it), and the Timeline is written there. Moving keeps
+        /// the file's GUID, so the slot and every reference to it hold. A Make Editable copy (.prefab) already has a folder of its own.
+        /// Returns the file's path after the move.</summary>
+        public static string IntoOwnFolder(string path, string effectName)
+        {
+            if (string.IsNullOrEmpty(path) || !path.EndsWith(".vfxnative", System.StringComparison.OrdinalIgnoreCase)) return path;
+            var name = new string((effectName ?? Path.GetFileNameWithoutExtension(path)).Select(c => Path.GetInvalidFileNameChars().Contains(c) || c == '/' ? '_' : c).ToArray()).Trim();
+            if (name.Length == 0) return path;
+            var dir = Path.GetDirectoryName(path).Replace('\\', '/');
+            if (Path.GetFileName(dir) == name) return path;
+            var folder = AssetDatabase.GenerateUniqueAssetPath($"{dir}/{name}");
+            if (string.IsNullOrEmpty(AssetDatabase.CreateFolder(dir, Path.GetFileName(folder)))) return path;
+            var moved = $"{folder}/{Path.GetFileName(path)}";
+            var error = AssetDatabase.MoveAsset(path, moved);
+            if (!string.IsNullOrEmpty(error)) { Debug.LogWarning($"{Path.GetFileName(path)} stays where it is: {error}"); AssetDatabase.DeleteAsset(folder); return path; }
+            return moved;
+        }
+
         /// <summary>Adds the director to a placed effect and binds it to the Animator above. Safe to run again.</summary>
         public static PlayableDirector Bind(GameObject effect)
         {
@@ -72,6 +91,8 @@ namespace BaseGameLab.Vfx.Editor
 
             var path = SourcePath(effect);
             var clip = MotionClip(path);
+            // the effect's name, from its motion clip ("<effect> Motion"): Unity names an imported file's main object after the file
+            path = IntoOwnFolder(path, clip.name.EndsWith(" Motion") ? clip.name.Substring(0, clip.name.Length - " Motion".Length) : null);
             var timelinePath = $"{Path.GetDirectoryName(path)}/{clip.name}.playable".Replace('\\', '/');
             var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(timelinePath);
             if (timeline == null)
