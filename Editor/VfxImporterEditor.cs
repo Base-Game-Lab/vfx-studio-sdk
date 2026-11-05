@@ -26,7 +26,7 @@ namespace BaseGameLab.Vfx.Editor
             if (GUILayout.Button("Make Editable"))
                 EditorApplication.delayCall += () => VfxMakeEditable.Export(path);
             if (GUILayout.Button("Project Settings"))
-                EditorApplication.delayCall += VfxNativeSettings.OpenOrCreate;
+                EditorApplication.delayCall += () => VfxNativeSettings.OpenOrCreate(path);
             ApplyRevertGUI();
         }
 

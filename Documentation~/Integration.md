@@ -82,8 +82,9 @@ does every copy placed in a slot. Make Editable copies the effect as adjusted.
 - **New version from us:** replace the file, keeping its name. References to the prefab keep working, and so do your adjustments.
 - **By hand:** select the file and use `Assets > BaSe VFX > Make Editable`. You get a plain prefab, materials, PNG masks, clips and a
   controller in a new folder. Later imports never touch that copy.
-- **Size or sorting:** `Assets > BaSe VFX > Project Settings` makes a settings file that overrides what the effect files carry. Raise
-  Anchor Width to make effects larger against the card. Changing it rebuilds every effect.
+- **Size or sorting:** `Assets > BaSe VFX > Project Settings` makes a settings file that overrides what the effect files carry. It starts
+  from an effect's own values, so creating it changes nothing. Raise Anchor Width to make effects larger against the card. Changing
+  it rebuilds every effect, and each effect's import names where the file differs from it. Delete the file to go back.
 
 ## What it does not do
 

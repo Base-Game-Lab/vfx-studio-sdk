@@ -6,26 +6,26 @@ Effects from VFX Studio, as normal Unity prefabs. This package is editor only: n
 
 In Unity, open `Window > Package Manager`, press `+`, choose `Install package from git URL...` and paste:
 
-    https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.1
+    https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.2
 
 Or add one line to `Packages/manifest.json`, under `dependencies`:
 
-    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.1",
+    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.2",
 
 The repository is private. Unity fetches it with the `git` on your PATH, so git must be installed and signed in to a GitHub account
 with read access (a credential helper such as Git Credential Manager, or the SSH form
-`git@github.com:Base-Game-Lab/vfx-unity.git#v0.3.1` with your SSH key). The same goes for any build machine.
+`git@github.com:Base-Game-Lab/vfx-unity.git#v0.3.2` with your SSH key). The same goes for any build machine.
 
 Check it worked: the Package Manager lists `BaSe Game Lab VFX` with the version you asked for.
 
-No GitHub access on a machine: we send `com.basegamelab.vfx-0.3.1.tgz`; copy it to `Packages` and use
-`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.1.tgz"` instead.
+No GitHub access on a machine: we send `com.basegamelab.vfx-0.3.2.tgz`; copy it to `Packages` and use
+`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.2.tgz"` instead.
 
 AllIn1Vfx Toolkit must be in the project. Materials reference its shader; the package does not bundle it.
 
 ## Update
 
-Change the tag at the end of the line, for example `#v0.3.0` to `#v0.3.1`, and return to Unity (or press `Update` on the package in
+Change the tag at the end of the line, for example `#v0.3.1` to `#v0.3.2`, and return to Unity (or press `Update` on the package in
 the Package Manager). Each version is a tag on this
 repository; the tag never moves, so every machine on the same line gets the same package.
 
@@ -74,8 +74,10 @@ file's `.meta`, so they survive a new version of the file dropped in under the s
 ## Settings
 
 None needed: each effect file carries the card's width, sorting, render queues and paths for your game. To override them,
-`Assets > BaSe VFX > Project Settings` opens `Assets/VfxNativeSettings.asset`, creating it if needed. It must stay at that path, and when
-it exists it replaces every value in the files.
+`Assets > BaSe VFX > Project Settings` opens `Assets/VfxNativeSettings.asset`, creating it if needed from the values of the newest effect
+in the project (or, from an effect's Inspector, that effect), so creating it changes nothing. It must stay at that path, and when it
+exists it replaces every value in the files. Where it differs from what an effect carries, that effect's import says so in the Console
+and its Inspector. To go back to the effects' own values, delete the file.
 
 - `Anchor Width`: width of the effect's anchor (the card) in local units. Effects scale from this.
 - `Screen Size`: the visible screen in those same units, so flat dims and flashes cover it. Zero uses the effect's own frame.

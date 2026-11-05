@@ -50,6 +50,13 @@ namespace BaseGameLab.Vfx.Editor
             }
 
             var settings = VfxNativeSettings.For(doc);
+            var overrides = VfxNativeSettings.Overrides(doc, settings);
+            if (overrides.Count > 0)
+            {
+                var plain = $"{report.Effect}: {VfxNativeSettings.AssetPath} overrides what this effect was made with for your game: {string.Join("; ", overrides)}. Delete that file to use the effect's own values, or keep it if the change is on purpose.";
+                ctx.LogImportWarning(plain);
+                report.Attention.Add(plain);
+            }
             var shader = VfxShaders.Find(settings.shader);
             if (shader == null && VfxShaders.PathOf(settings.shader) != null)
             {

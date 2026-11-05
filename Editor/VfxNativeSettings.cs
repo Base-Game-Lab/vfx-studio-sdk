@@ -42,11 +42,38 @@ namespace BaseGameLab.Vfx.Editor
 
         /// <summary>The one place the importer reads, so the menu never lets it land anywhere else.</summary>
         [MenuItem("Assets/BaSe VFX/Project Settings")]
-        public static void OpenOrCreate()
+        public static void OpenOrCreate() => OpenOrCreate(null);
+
+        /// <summary>A new settings file starts from what an effect carries for its game (seed, else the newest effect in the project),
+        /// so creating it changes no effect; only what is then edited in it does.</summary>
+        public static void OpenOrCreate(string seed)
         {
             if (AssetDatabase.LoadAssetAtPath<VfxNativeSettings>(AssetPath) == null)
-                AssetDatabase.CreateAsset(CreateInstance<VfxNativeSettings>(), AssetPath);
+            {
+                var s = CreateInstance<VfxNativeSettings>();
+                var from = seed ?? NewestEffect();
+                if (from != null)
+                {
+                    try { Apply(s, Json.Parse(File.ReadAllText(from))["game"]); }
+                    catch (Exception e) when (e is FormatException || e is IOException) { }
+                }
+                AssetDatabase.CreateAsset(s, AssetPath);
+            }
             Selection.activeObject = AssetDatabase.LoadAssetAtPath<VfxNativeSettings>(AssetPath);
+        }
+
+        static string NewestEffect()
+        {
+            string newest = null;
+            var when = DateTime.MinValue;
+            foreach (var guid in AssetDatabase.FindAssets("", new[] { "Assets" }))
+            {
+                var p = AssetDatabase.GUIDToAssetPath(guid);
+                if (!p.EndsWith(".vfxnative", StringComparison.OrdinalIgnoreCase)) continue;
+                var t = File.GetLastWriteTimeUtc(p);
+                if (t > when) { when = t; newest = p; }
+            }
+            return newest;
         }
 
         /// <summary>The project's settings, or defaults when it has none.</summary>
@@ -62,6 +89,13 @@ namespace BaseGameLab.Vfx.Editor
             var s = Load();
             var g = doc["game"];
             if (File.Exists(AssetPath) || !g.Exists) return s;
+            Apply(s, g);
+            return s;
+        }
+
+        static void Apply(VfxNativeSettings s, J g)
+        {
+            if (!g.Exists) return;
             s.anchorWidth = g["anchorWidth"].F(s.anchorWidth);
             if (g["screenSize"].Exists) s.screenSize = g["screenSize"].V2;
             s.sortingLayer = g["sortingLayer"].S(s.sortingLayer);
@@ -75,7 +109,27 @@ namespace BaseGameLab.Vfx.Editor
             var targets = new System.Collections.Generic.List<TargetBinding>();
             foreach (var t in g["targets"].Pairs) targets.Add(new TargetBinding { id = t.Key, path = t.Value.S() });
             s.targets = targets.ToArray();
-            return s;
+        }
+
+        /// <summary>Where the project's settings file differs from what this effect carries for its game, in words; empty when there
+        /// is no settings file, the effect carries nothing, or they agree. The file still wins: this only keeps it from being silent.</summary>
+        internal static System.Collections.Generic.List<string> Overrides(J doc, VfxNativeSettings s)
+        {
+            var list = new System.Collections.Generic.List<string>();
+            var g = doc["game"];
+            if (!File.Exists(AssetPath) || !g.Exists) return list;
+            void Num(string what, float mine, J theirs, float tolerance = 1e-3f)
+            {
+                if (theirs.Exists && Mathf.Abs(mine - theirs.F()) > tolerance) list.Add($"{what} {mine:0.####} (the effect: {theirs.F():0.####})");
+            }
+            Num("anchor width", s.anchorWidth, g["anchorWidth"]);
+            Num("render queue behind", s.queueBehind, g["queueBehind"], 0.5f);
+            Num("render queue in front", s.queueFront, g["queueFront"], 0.5f);
+            Num("sorting order behind", s.orderBehind, g["orderBehind"], 0.5f);
+            Num("sorting order in front", s.orderFront, g["orderFront"], 0.5f);
+            if (g["sortingLayer"].Exists && g["sortingLayer"].S() != s.sortingLayer) list.Add($"sorting layer {s.sortingLayer} (the effect: {g["sortingLayer"].S()})");
+            if (g["shader"].Exists && g["shader"].S() != s.shader) list.Add($"shader {s.shader} (the effect: {g["shader"].S()})");
+            return list;
         }
 
         public string PathOf(string id)
