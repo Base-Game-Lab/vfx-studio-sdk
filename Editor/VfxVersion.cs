@@ -3,7 +3,7 @@ namespace BaseGameLab.Vfx.Editor
     /// <summary>The file version rule: read every 0.x we know, and stop with a plain sentence on anything newer.</summary>
     internal static class VfxVersion
     {
-        public const int KnownMajor = 0, KnownMinor = 3;
+        public const int KnownMajor = 0, KnownMinor = 4;
         public static string Known => $"{KnownMajor}.{KnownMinor}";
 
         /// <summary>Null when this package can read the document, otherwise what to tell the user.</summary>

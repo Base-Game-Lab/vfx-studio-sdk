@@ -52,6 +52,18 @@ only.
 `SetActive(true)` or `Instantiate`. Particles play on awake and the Animator runs its one 60 fps clip. To replay, turn it off and on.
 Like your own effects, nothing turns it off for you.
 
+## First play without a stall
+
+The first time a shader variant draws after an install, the phone compiles it, and that frame is long. Each effect file holds a
+**`<effect> warm-up`** sub-asset, a Shader Variant Collection of the variants the effect draws with. Use it one of two ways:
+
+- Add it to **Project Settings > Graphics > Preloaded Shaders**. Unity warms it up when the game starts. No code.
+- Or, if your loading step already warms shaders, call `WarmUp()` on it there.
+
+On an iPhone 12 the first play after an install went from a 234 ms frame to 67 ms either way (your own card glow: 150 ms). The warm-up
+itself takes about 0.7 s, at start-up or wherever you call it. Later launches were already short (25 to 31 ms), because the phone keeps
+its compiled shaders.
+
 ## Adjusting an effect
 
 Select the effect file. Its Inspector has four settings under **Adjust**; press Apply and the prefab rebuilds.

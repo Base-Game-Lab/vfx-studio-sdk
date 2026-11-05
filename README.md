@@ -6,19 +6,30 @@ Effects from VFX Studio, as normal Unity prefabs. This package is editor only: n
 
 Add one line to `Packages/manifest.json`, under `dependencies`:
 
-    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-unity.git#v0.1.0",
+    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.0",
 
 The repository is private, so each developer's GitHub account, and any build machine's, needs read access to it.
 
-No GitHub access on a machine: we send `com.basegamelab.vfx-0.1.0.tgz`; copy it to `Packages` and use
-`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.1.0.tgz"` instead.
+No GitHub access on a machine: we send `com.basegamelab.vfx-0.3.0.tgz`; copy it to `Packages` and use
+`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.0.tgz"` instead.
 
 AllIn1Vfx Toolkit must be in the project. Materials reference its shader; the package does not bundle it.
 
 ## Update
 
-Change the tag at the end of the line, for example `#v0.1.0` to `#v0.2.0`, and return to Unity. Each version is a tag on this
+Change the tag at the end of the line, for example `#v0.2.0` to `#v0.3.0`, and return to Unity. Each version is a tag on this
 repository; the tag never moves, so every machine on the same line gets the same package.
+
+## Make an effect for one of your cards
+
+1. In the Hierarchy, right-click the slot the effect goes in, under the card's `VFX` node (for example `DefaultOnRevealVFX`), and choose
+   `BaSe VFX > Send to VFX Studio...`. It plays the card in the editor (a progress bar counts the frames) and saves one `.vfxcapture`
+   file. Your scene is not changed.
+2. Choose `Open VFX Studio` in the dialog, or go to https://portal.basegamelab.com/tools/vfx-studio/ (we give you a login), and drop the
+   file on the page. Your card opens on its own board with our effects already playing on it. Pick one, tune it, and use
+   the Unity export (`Export > Unity for ...`).
+3. Drop the `.vfxnative` file anywhere under `Assets`. It goes into the slot it was captured from by itself. `Edit > Undo` or
+   `GameObject > BaSe VFX > Restore Original` takes it out. If that slot is gone, the Console says why, and you place it as below.
 
 ## Use
 
@@ -37,6 +48,9 @@ You can still place the prefab by hand: put it where your effects live, for exam
 
 To play again, deactivate and activate it. The prefab is built the usual way: Particle Systems, sprites with AllIn1Vfx
 materials, grey masks, and an Animator with one 60 fps clip.
+
+To avoid a long frame the first time an effect plays after an install, add the effect file's `<effect> warm-up` sub-asset to Project
+Settings > Graphics > Preloaded Shaders (or call `WarmUp()` on it in your loading step). See `Documentation~/Integration.md`.
 
 ## Adjust
 

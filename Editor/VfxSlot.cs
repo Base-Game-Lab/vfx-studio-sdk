@@ -190,6 +190,22 @@ namespace BaseGameLab.Vfx.Editor
             return slot;
         }
 
+        /// <summary>What the window and the Restore Original menu run: the slot made editable (<see cref="Editable"/>, so a card prefab opens
+        /// in Prefab Mode), then <see cref="Use"/> with Undo. Returns the placed effect, or null when the prefab could not be opened.</summary>
+        public static GameObject UseHere(GameObject slot, GameObject effect)
+        {
+            var editable = Editable(slot);
+            return editable != null ? Use(editable, effect) : null;
+        }
+
+        /// <summary>The Restore Original route: <see cref="Editable"/>, then <see cref="Restore"/> with Undo. Returns the slot it restored.</summary>
+        public static GameObject RestoreHere(GameObject slot)
+        {
+            var editable = Editable(slot);
+            if (editable != null) Restore(editable);
+            return editable;
+        }
+
         // ---- the steps, with or without Undo ----
 
         static int Begin(string name, bool undo)
@@ -297,8 +313,7 @@ namespace BaseGameLab.Vfx.Editor
         [MenuItem(RestoreMenu, false, 11)]
         static void RestoreSelected()
         {
-            var slot = VfxSlot.Editable(SelectedFilledSlot());
-            if (slot != null) VfxSlot.Restore(slot);
+            VfxSlot.RestoreHere(SelectedFilledSlot());
         }
 
         void FromSelection()
@@ -339,23 +354,31 @@ namespace BaseGameLab.Vfx.Editor
             {
                 EditorGUILayout.BeginHorizontal();
                 using (new EditorGUI.DisabledScope(!VfxSlot.IsEffect(effect)))
-                    if (GUILayout.Button($"Use as {slot.name}")) Do(slot, s => Selection.activeGameObject = VfxSlot.Use(s, effect));
-                if (VfxSlot.Holds(slot) && GUILayout.Button("Restore original", GUILayout.Width(120))) Do(slot, s => VfxSlot.Restore(s));
+                    if (GUILayout.Button($"Use as {slot.name}"))
+                        Later(() =>
+                        {
+                            var placed = VfxSlot.UseHere(slot, effect);
+                            if (placed != null) Selection.activeGameObject = placed;
+                            return placed != null ? placed.transform.parent.gameObject : null;
+                        });
+                if (VfxSlot.Holds(slot) && GUILayout.Button("Restore original", GUILayout.Width(120))) Later(() => VfxSlot.RestoreHere(slot));
                 EditorGUILayout.EndHorizontal();
             }
             EditorGUILayout.EndScrollView();
         }
 
         // After OnGUI, because opening Prefab Mode and creating objects inside a GUI pass breaks its layout.
-        void Do(GameObject slot, Action<GameObject> change)
+        // The change returns the slot it acted on, which may now be the one in Prefab Mode; the window then lists that card.
+        void Later(Func<GameObject> change)
         {
             EditorApplication.delayCall += () =>
             {
-                var editable = VfxSlot.Editable(slot);
-                if (editable == null) return;
-                try { change(editable); }
+                try
+                {
+                    var slot = change();
+                    if (slot != null) card = slot;
+                }
                 catch (InvalidOperationException e) { EditorUtility.DisplayDialog("Use as Slot", e.Message, "OK"); }
-                card = editable;
                 Repaint();
             };
         }

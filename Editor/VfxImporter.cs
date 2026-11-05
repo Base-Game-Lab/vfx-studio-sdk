@@ -9,7 +9,7 @@ namespace BaseGameLab.Vfx.Editor
 {
     /// <summary>Imports a .vfxnative file as a prefab. The prefab and everything it uses are read-only sub-assets of that file.</summary>
     // Raise the version whenever imported output changes: Unity re-imports on it, not on a code change.
-    [ScriptedImporter(16, "vfxnative", 0)] // default queue, before prefabs: a card prefab nesting this effect logs a missing-nested-prefab error on a clean Library otherwise. The shader is a declared dependency, so it still imports first.
+    [ScriptedImporter(17, "vfxnative", 0)] // default queue, before prefabs: a card prefab nesting this effect logs a missing-nested-prefab error on a clean Library otherwise. The shader is a declared dependency, so it still imports first.
     public sealed class VfxImporter : ScriptedImporter
     {
         internal const string NoteId = "notes";
@@ -77,6 +77,8 @@ namespace BaseGameLab.Vfx.Editor
 
             if (report.Dropped.Count > 0)
                 ctx.LogImportWarning($"{report.Effect}: {report.Dropped.Count} thing(s) did not map to Unity. The list is in its inspector.");
+            var warmup = VfxWarmup.Collect(ctx, report.Effect);
+            if (warmup != null) ctx.AddObjectToAsset(VfxWarmup.Id, warmup);
             ctx.AddObjectToAsset(NoteId, new TextAsset(report.ToText()) { name = report.Effect + " notes" });
         }
 
