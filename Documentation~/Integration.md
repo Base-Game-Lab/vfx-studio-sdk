@@ -7,13 +7,13 @@ only.
 ## Steps
 
 1. **Install.** In Unity, `Window > Package Manager`, `+`, `Install package from git URL...` with
-   `https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.3`, or add one line to `Packages/manifest.json`, under `dependencies`:
+   `https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.4`, or add one line to `Packages/manifest.json`, under `dependencies`:
 
-       "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.3",
+       "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.4",
 
    The repository is public, so no GitHub sign-in is needed, only `git`. Its use is licensed: see `LICENSE.md`. To update,
-   change the tag, for example to `#v0.3.4`. A machine without git can use the tarball we send instead:
-   `"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.3.tgz"`, with the file in `Packages`.
+   change the tag, for example to `#v0.3.5`. A machine without git can use the tarball we send instead:
+   `"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.4.tgz"`, with the file in `Packages`.
 2. **Drop in the effect.** Drag the `.vfxnative` file into the Project window, anywhere under `Assets`. It imports as a prefab with the file's name.
 3. **Put it in a slot.** Select the card (the prefab in the Project window, or the card in a scene) and the effect file, then use
    `BaSe VFX > Use as Slot...`, from the `GameObject` menu or the right-click menu of either window. It lists the slots under the card's
