@@ -12,7 +12,7 @@ namespace BaseGameLab.Vfx.Editor
     /// The way back from Send to VFX Studio: an effect file made from a capture names the slot it came from (game.slot, format 0.4). When
     /// such a file is imported, its effect goes into that slot by itself, through Use as Slot's own route: the slot made editable (Prefab
     /// Mode when the slot is in a prefab), then <see cref="VfxSlot.Use"/> as one undo step. When the project or the package differs from the
-    /// capture's, or the slot is gone, nothing is placed: the file imports as usual and the Console says why, and Use as Slot still works.
+    /// capture's, or the slot is gone, nothing is placed: the file imports as usual and the Console says why, and Import from Studio still places it.
     /// A file placed once is not placed again on a re-import of the same content (per machine), and an effect already in the slot is never placed twice.
     /// </summary>
     public static class VfxReturn
@@ -41,6 +41,29 @@ namespace BaseGameLab.Vfx.Editor
 
         internal static string Key(string path) => $"BaseGameLab.Vfx.Return.{PlayerSettings.productGUID}.{AssetDatabase.AssetPathToGUID(path)}";
 
+        // By GUID, so it holds when the file moves into a folder of its own (an effect with card motion).
+        internal static string ChosenKey(string path) => $"BaseGameLab.Vfx.Chosen.{PlayerSettings.productGUID}.{AssetDatabase.AssetPathToGUID(path)}";
+
+        /// <summary>Marks an imported effect file as placed by the artist's own choice (Import from Studio), on this machine: from then on its
+        /// imports never place it by themselves, so a capture's effect put into another slot does not also land in the slot it came from.</summary>
+        public static void Choose(string path)
+        {
+            if (!string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(path))) EditorPrefs.SetBool(ChosenKey(path), true);
+        }
+
+        /// <summary>True when the file was put in a slot with Import from Studio (<see cref="Choose"/>).</summary>
+        public static bool Chosen(string path) =>
+            !string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(path)) && EditorPrefs.GetBool(ChosenKey(path), false);
+
+        /// <summary>The slot a capture's effect file names (its game.slot), or an empty J for a file not made from a capture.</summary>
+        internal static J CapturedSlot(string path) => File.Exists(path) ? SlotIn(File.ReadAllBytes(path)) : default;
+
+        static J SlotIn(byte[] bytes)
+        {
+            try { return Json.Parse(System.Text.Encoding.UTF8.GetString(bytes))["game"]["slot"]; }
+            catch (FormatException) { return default; }
+        }
+
         /// <summary>Puts the effect of the file at <paramref name="path"/> into the slot its capture came from. With <paramref name="once"/>,
         /// a file whose content was already handled on this machine is left alone (a re-import of the same file, a Library rebuild).</summary>
         public static Outcome Place(string path, bool once = false)
@@ -48,13 +71,13 @@ namespace BaseGameLab.Vfx.Editor
             var o = new Outcome { file = path };
             if (!File.Exists(path)) return o;
             var bytes = File.ReadAllBytes(path);
-            J slot;
-            try { slot = Json.Parse(System.Text.Encoding.UTF8.GetString(bytes))["game"]["slot"]; }
-            catch (FormatException) { return o; }
+            var slot = SlotIn(bytes);
             if (!slot.Exists) return o; // not from a capture: a normal import
             var hash = Hash128.Compute(bytes).ToString();
             if (once && EditorPrefs.GetString(Key(path)) == hash) return o;
             Last = o;
+            // put in a slot by hand (Import from Studio): it stays where the artist put it, and never also goes back into its capture's slot
+            if (Chosen(path)) { o.why = $"{Path.GetFileName(path)} was put in a slot with Import from Studio, so it is not placed by itself."; return o; }
 
             o.effect = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             var name = Path.GetFileName(path);
@@ -82,14 +105,14 @@ namespace BaseGameLab.Vfx.Editor
             VfxSlot.Use(editable, o.effect);
             o.placed = true;
             EditorPrefs.SetString(Key(path), hash); // a skipped file is tried again on its next import
-            Debug.Log($"{name} is in {where}, where it was captured. Edit > Undo or BaSe VFX > Restore Original takes it out.", editable);
+            Debug.Log($"{name} is in {where}, where it was captured. Edit > Undo or BaSe VFX > Put Back Original takes it out.", editable);
             return o;
         }
 
         static Outcome Skip(Outcome o, string why)
         {
             o.why = why;
-            Debug.LogWarning($"{why} The effect imported as usual; place it with BaSe VFX > Use as Slot.");
+            Debug.LogWarning($"{why} The effect imported as usual; to place it, right-click the slot in the Hierarchy and use BaSe VFX > Import from Studio...");
             return o;
         }
 

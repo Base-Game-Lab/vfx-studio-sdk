@@ -7,20 +7,26 @@ only.
 ## Steps
 
 1. **Install.** In Unity, `Window > Package Manager`, `+`, `Install package from git URL...` with
-   `https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.7`, or add one line to `Packages/manifest.json`, under `dependencies`:
+   `https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.8`, or add one line to `Packages/manifest.json`, under `dependencies`:
 
-       "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.7",
+       "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.8",
 
    The repository is public, so no GitHub sign-in is needed, only `git`. Its use is licensed: see `LICENSE.md`. To update,
-   change the tag, for example to `#v0.3.8`. A machine without git can use the tarball we send instead:
-   `"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.7.tgz"`, with the file in `Packages`.
+   change the tag, for example to `#v0.3.9`. A machine without git can use the tarball we send instead:
+   `"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.8.tgz"`, with the file in `Packages`.
 2. **Drop in the effect.** Drag the `.vfxnative` file into the Project window, anywhere under `Assets`. It imports as a prefab with the file's name.
-3. **Put it in a slot.** Select the card (the prefab in the Project window, or the card in a scene) and the effect file, then use
-   `BaSe VFX > Use as Slot...`, from the `GameObject` menu or the right-click menu of either window. It lists the slots under the card's
-   `VFX` node, such as `DefaultOnRevealVFX`, `DefaultDestroy` and `MovedCard_VFX`; press `Use as DefaultOnRevealVFX`. Your code that
-   turns that slot on now plays our effect. See "Using a slot" below for what changes.
+3. **Put it in a slot.** In the Hierarchy, right-click the slot under the card's `VFX` node, such as `DefaultOnRevealVFX`, and choose
+   `BaSe VFX > Import from Studio...`. The window is for that slot only. It lists the `.vfxnative` effects already in the project,
+   newest first, with the ones captured from this slot in bold; press `Use`. `From file...` (it opens in Downloads) copies a
+   `.vfxnative` into `Assets/BaSe VFX` (a free name when the file's is taken), imports it and puts it in this slot, so step 2 is optional.
+   Your code that turns that slot on now plays our effect. See "Using a slot" below for what changes.
 
-   Unity's menus are fixed when scripts compile, so the slot names are buttons in that small window rather than menu entries.
+   An effect file captured from a slot goes back into that slot by itself when it is imported. One you put in a slot with Import from
+   Studio stays only where you put it: its imports never also place it in the slot it was captured from.
+
+   Starting from the effect file instead, right-click it in the Project window and use `BaSe VFX > Put in a Slot...`: set the card, and
+   press `Use as <slot>` for one of the slots under its `VFX` node. Unity's menus are fixed when scripts compile, so the slot names are
+   buttons in that small window rather than menu entries.
 
 ## Using a slot
 
@@ -28,11 +34,11 @@ only.
 - Its children move, unchanged, under one new inactive child, `_Original`. The effect goes in beside it as an active child, still linked
   to the file, so a new version of the effect still arrives.
 - Turning the slot on plays the effect: particles play on awake and its Animator starts its one clip.
-- `Edit > Undo` reverses it in one step. Later, `GameObject > BaSe VFX > Restore Original` (or `Restore original` in the window) takes the
+- `Edit > Undo` reverses it in one step. Later, `GameObject > BaSe VFX > Put Back Original` (or `Put Back Original` in the window) takes the
   effect out and puts the children back where they were.
 - A card prefab, or a slot inside a copy of one, opens in Prefab Mode and the change is made there, so it reaches every card that uses
   the prefab. Prefab Mode's Auto Save saves it, or press Save. A copy's children cannot move, which is Unity's rule for prefabs.
-- If the effect moves the card, the window also binds that motion, so activating the slot moves the card with no code. The file holds a
+- If the effect moves the card, placing it also binds that motion, so activating the slot moves the card with no code. The file holds a
   clip, `<effect> Motion`, for `AdditionalTransform/MainComponents`; the binding adds Unity's own PlayableDirector and needs the Timeline
   package. It binds to the Animator on the card root, even when the slot has an Animator of its own.
 - If a slot is moved or scaled, the effect still sits at the card's centre and size, where it was made.

@@ -13,7 +13,7 @@ namespace BaseGameLab.Vfx.Editor
     /// Puts an effect into a slot the card already has, such as DefaultOnRevealVFX, so the game's own code starts it. The slot object
     /// stays as it is: its name, its components and every reference to it. Its children move under one inactive child, _Original,
     /// and the effect is nested as an active child of the slot, so turning the slot on plays ours. One Undo reverses it, and
-    /// <see cref="Restore"/> puts the original children back later.
+    /// <see cref="Restore"/> (BaSe VFX > Put Back Original) puts the original children back later.
     /// </summary>
     public static class VfxSlot
     {
@@ -133,8 +133,8 @@ namespace BaseGameLab.Vfx.Editor
         /// <summary>Takes our effect out of the slot and puts its original children back where they were, as one undo step.</summary>
         public static void Restore(GameObject slot, bool undo = true)
         {
-            if (!Holds(slot)) throw new InvalidOperationException($"{(slot != null ? slot.name : "Nothing")} holds no parked original to restore.");
-            var name = $"Restore {slot.name}";
+            if (!Holds(slot)) throw new InvalidOperationException($"{(slot != null ? slot.name : "Nothing")} holds no parked original to put back.");
+            var name = $"Put Back Original in {slot.name}";
             int group = Begin(name, undo);
             var t = slot.transform;
             var parked = t.Find(Parked);
@@ -190,7 +190,7 @@ namespace BaseGameLab.Vfx.Editor
             return slot;
         }
 
-        /// <summary>What the window and the Restore Original menu run: the slot made editable (<see cref="Editable"/>, so a card prefab opens
+        /// <summary>What Import from Studio and the Put in a Slot window run: the slot made editable (<see cref="Editable"/>, so a card prefab opens
         /// in Prefab Mode), then <see cref="Use"/> with Undo. Returns the placed effect, or null when the prefab could not be opened.</summary>
         public static GameObject UseHere(GameObject slot, GameObject effect)
         {
@@ -198,7 +198,7 @@ namespace BaseGameLab.Vfx.Editor
             return editable != null ? Use(editable, effect) : null;
         }
 
-        /// <summary>The Restore Original route: <see cref="Editable"/>, then <see cref="Restore"/> with Undo. Returns the slot it restored.</summary>
+        /// <summary>The Put Back Original route: <see cref="Editable"/>, then <see cref="Restore"/> with Undo. Returns the slot it restored.</summary>
         public static GameObject RestoreHere(GameObject slot)
         {
             var editable = Editable(slot);
@@ -281,23 +281,25 @@ namespace BaseGameLab.Vfx.Editor
         }
     }
 
-    /// <summary>BaSe VFX > Use as Slot: lists the slots of the selected card. Unity's menus are fixed when scripts compile, so the slot
-    /// names live in this small window rather than in the menu itself.</summary>
+    /// <summary>Project window > BaSe VFX > Put in a Slot: for an effect file picked before any card, it lists the slots of a card. Unity's
+    /// menus are fixed when scripts compile, so the slot names live in this small window rather than in the menu itself. From a slot in the
+    /// Hierarchy, Import from Studio (<see cref="VfxImportWindow"/>) is the way in: the slot is already chosen there.</summary>
     internal sealed class VfxSlotWindow : EditorWindow
     {
         GameObject card, effect;
         Vector2 scroll;
 
-        [MenuItem("GameObject/BaSe VFX/Use as Slot...", false, 10)]
-        [MenuItem("Assets/BaSe VFX/Use as Slot...", false, 20)]
+        internal const string Title = "Put in a Slot";
+
+        [MenuItem("Assets/BaSe VFX/Put in a Slot...", false, 20)]
         static void Open()
         {
-            var w = GetWindow<VfxSlotWindow>(true, "Use as Slot", true);
+            var w = GetWindow<VfxSlotWindow>(true, Title, true);
             w.minSize = new Vector2(320, 180);
             w.FromSelection();
         }
 
-        const string RestoreMenu = "GameObject/BaSe VFX/Restore Original";
+        internal const string PutBackMenu = "GameObject/BaSe VFX/Put Back Original";
 
         // The selected slot, or the slot above a selected placed effect.
         static GameObject SelectedFilledSlot()
@@ -307,10 +309,10 @@ namespace BaseGameLab.Vfx.Editor
             return VfxSlot.Holds(go) ? go : null;
         }
 
-        [MenuItem(RestoreMenu, true)]
+        [MenuItem(PutBackMenu, true)]
         static bool CanRestore() => SelectedFilledSlot() != null;
 
-        [MenuItem(RestoreMenu, false, 11)]
+        [MenuItem(PutBackMenu, false, 12)]
         static void RestoreSelected()
         {
             VfxSlot.RestoreHere(SelectedFilledSlot());
@@ -336,7 +338,9 @@ namespace BaseGameLab.Vfx.Editor
         void OnGUI()
         {
             card = (GameObject)EditorGUILayout.ObjectField("Card", card, typeof(GameObject), true);
-            effect = (GameObject)EditorGUILayout.ObjectField("Effect", effect, typeof(GameObject), false);
+            // any object: the .vfxnative file itself, its prefab, or a copy of it already placed somewhere
+            var picked = EditorGUILayout.ObjectField(new GUIContent("Effect (.vfxnative)", "The .vfxnative file from VFX Studio's Unity export, in the Project window."), effect, typeof(Object), true);
+            if (picked != effect) effect = VfxSlot.EffectOf(picked) ?? picked as GameObject;
             if (effect != null && !VfxSlot.IsEffect(effect)) EditorGUILayout.HelpBox("Pick an effect: a .vfxnative file from VFX Studio.", MessageType.Warning);
             if (card == null)
             {
@@ -361,7 +365,7 @@ namespace BaseGameLab.Vfx.Editor
                             if (placed != null) Selection.activeGameObject = placed;
                             return placed != null ? placed.transform.parent.gameObject : null;
                         });
-                if (VfxSlot.Holds(slot) && GUILayout.Button("Restore original", GUILayout.Width(120))) Later(() => VfxSlot.RestoreHere(slot));
+                if (VfxSlot.Holds(slot) && GUILayout.Button("Put Back Original", GUILayout.Width(130))) Later(() => VfxSlot.RestoreHere(slot));
                 EditorGUILayout.EndHorizontal();
             }
             EditorGUILayout.EndScrollView();
@@ -378,7 +382,7 @@ namespace BaseGameLab.Vfx.Editor
                     var slot = change();
                     if (slot != null) card = slot;
                 }
-                catch (InvalidOperationException e) { EditorUtility.DisplayDialog("Use as Slot", e.Message, "OK"); }
+                catch (InvalidOperationException e) { EditorUtility.DisplayDialog(Title, e.Message, "OK"); }
                 Repaint();
             };
         }

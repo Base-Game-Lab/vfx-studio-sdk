@@ -49,7 +49,7 @@ namespace BaseGameLab.Vfx.Editor
         const string StudioDefault = "https://portal.basegamelab.com/tools/vfx-studio/";
 
         // always on: with the wrong thing selected, the item says why instead of greying out with no reason
-        [MenuItem(Menu, false, 12)]
+        [MenuItem(Menu, false, 10)]
         static void Send()
         {
             var slot = Selection.activeGameObject;
