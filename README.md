@@ -4,39 +4,51 @@ Effects from VFX Studio, as normal Unity prefabs. This package is editor only: n
 
 ## Install
 
-Add one line to `Packages/manifest.json`, under `dependencies`:
+In Unity, open `Window > Package Manager`, press `+`, choose `Install package from git URL...` and paste:
 
-    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.0",
+    https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.1
 
-The repository is private, so each developer's GitHub account, and any build machine's, needs read access to it.
+Or add one line to `Packages/manifest.json`, under `dependencies`:
 
-No GitHub access on a machine: we send `com.basegamelab.vfx-0.3.0.tgz`; copy it to `Packages` and use
-`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.0.tgz"` instead.
+    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-unity.git#v0.3.1",
+
+The repository is private. Unity fetches it with the `git` on your PATH, so git must be installed and signed in to a GitHub account
+with read access (a credential helper such as Git Credential Manager, or the SSH form
+`git@github.com:Base-Game-Lab/vfx-unity.git#v0.3.1` with your SSH key). The same goes for any build machine.
+
+Check it worked: the Package Manager lists `BaSe Game Lab VFX` with the version you asked for.
+
+No GitHub access on a machine: we send `com.basegamelab.vfx-0.3.1.tgz`; copy it to `Packages` and use
+`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.1.tgz"` instead.
 
 AllIn1Vfx Toolkit must be in the project. Materials reference its shader; the package does not bundle it.
 
 ## Update
 
-Change the tag at the end of the line, for example `#v0.2.0` to `#v0.3.0`, and return to Unity. Each version is a tag on this
+Change the tag at the end of the line, for example `#v0.3.0` to `#v0.3.1`, and return to Unity (or press `Update` on the package in
+the Package Manager). Each version is a tag on this
 repository; the tag never moves, so every machine on the same line gets the same package.
 
 ## Make an effect for one of your cards
 
-1. In the Hierarchy, right-click the slot the effect goes in, under the card's `VFX` node (for example `DefaultOnRevealVFX`), and choose
+1. In the **Hierarchy** (not the Project window: its `BaSe VFX` menu only has Use as Slot), right-click the slot the effect goes in, under the card's `VFX` node (for example `DefaultOnRevealVFX`), and choose
    `BaSe VFX > Send to VFX Studio...`. It plays the card in the editor (a progress bar counts the frames) and saves one `.vfxcapture`
    file. Your scene is not changed.
 2. Choose `Open VFX Studio` in the dialog, or go to https://portal.basegamelab.com/tools/vfx-studio/ (we give you a login), and drop the
    file on the page. Your card opens on its own board with our effects already playing on it. Pick one, tune it, and use
    the Unity export (`Export > Unity for ...`).
-3. Drop the `.vfxnative` file anywhere under `Assets`. It goes into the slot it was captured from by itself. `Edit > Undo` or
+3. Drag the `.vfxnative` file into the **Project window**, into any folder under `Assets` (not onto the Scene view, which only takes
+   files Unity has already imported). It goes into the slot it was captured from by itself. `Edit > Undo` or
    `GameObject > BaSe VFX > Restore Original` takes it out. If that slot is gone, the Console says why, and you place it as below.
 
 ## Use
 
-1. Drop a `.vfxnative` file anywhere under `Assets`. It imports as a prefab.
+1. Drag a `.vfxnative` file into the Project window, anywhere under `Assets`. It imports as a prefab.
 2. Select a card (a prefab or a scene object) and the effect, and use `BaSe VFX > Use as Slot...` (`GameObject` menu, or right-click in
    the Hierarchy or Project window). Press `Use as <slot>` for one of the slots under the card's `VFX` node, such as `DefaultOnRevealVFX`.
-3. Turn the slot on, as your code already does. Particles and sprites play by themselves, with no script from us.
+3. Turn the slot on, as your code already does. Particles and sprites play by themselves, with no script from us. A one-shot effect
+   ends invisible: anything the effect still shows at its last frame (a reveal's dimmed screen, say) fades out over 0.3s after it, so
+   the game looks as it did before.
 
 Use as Slot keeps the slot object, its name, its components and every reference to it. It parks the slot's children under one inactive
 child, `_Original`, and nests the effect beside it, still linked to the file. `Edit > Undo` reverses it in one step;

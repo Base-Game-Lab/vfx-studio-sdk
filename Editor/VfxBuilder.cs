@@ -71,6 +71,7 @@ namespace BaseGameLab.Vfx.Editor
                         break;
                 }
             }
+            EndClean();
             FinishAnimator();
             foreach (var d in doc["dropped"].Items)
             {
@@ -374,6 +375,52 @@ namespace BaseGameLab.Vfx.Editor
 
         void Key(string path, Type type, string property, AnimationCurve c) =>
             AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve(path, type, property), c);
+
+        /// <summary>Seconds a one-shot effect takes, after its last frame, to fade out the sprites the file leaves visible.</summary>
+        public const float FadeOut = 0.3f;
+
+        // A one-shot effect hands the screen back. The Animator holds a clip's last frame, so a layer the file ends visible (a
+        // reveal's dim, a glow left on) would stay on the game for good. Each such sprite fades to nothing over FadeOut after the
+        // effect's last frame; everything up to that frame is as the file made it.
+        void EndClean()
+        {
+            if (Looping) return;
+            var faded = new List<string>();
+            foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                var path = AnimationUtility.CalculateTransformPath(sr.transform, root.transform);
+                var alpha = Curve(path, "m_Color.a");
+                float end = alpha != null ? alpha.Evaluate(duration) : sr.color.a;
+                if (end <= 0.001f) continue;
+                foreach (var channel in new[] { "m_Color.r", "m_Color.g", "m_Color.b" })
+                {
+                    var c = Curve(path, channel);
+                    if (c != null) Key(path, typeof(SpriteRenderer), channel, Tail(c, c.Evaluate(duration)));
+                }
+                Key(path, typeof(SpriteRenderer), "m_Color.a", Tail(alpha, end));
+                faded.Add(sr.name);
+            }
+            if (faded.Count == 0) return;
+            var s = AnimationUtility.GetAnimationClipSettings(clip);
+            s.stopTime = duration + FadeOut;
+            AnimationUtility.SetAnimationClipSettings(clip, s);
+            report.Built.Add($"{string.Join(", ", faded)} {(faded.Count == 1 ? "ends" : "end")} visible in the file, so {(faded.Count == 1 ? "it fades" : "they fade")} out over {FadeOut:0.##}s after the effect and the game looks as before it.");
+        }
+
+        AnimationCurve Curve(string path, string property) =>
+            AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(path, typeof(SpriteRenderer), property));
+
+        // The curve as it was up to the effect's end, then a straight fade from its end value to zero.
+        AnimationCurve Tail(AnimationCurve c, float end)
+        {
+            var keys = (c ?? AnimationCurve.Constant(0, duration, end)).keys.Where(k => k.time <= duration + 1e-4f).ToList();
+            if (keys.Count == 0 || keys[keys.Count - 1].time < duration - 1e-4f) keys.Add(new Keyframe(duration, end));
+            var last = keys[keys.Count - 1];
+            float slope = -end / FadeOut;
+            keys[keys.Count - 1] = new Keyframe(last.time, last.value, last.inTangent, slope);
+            keys.Add(new Keyframe(duration + FadeOut, 0, slope, 0));
+            return new AnimationCurve(keys.ToArray());
+        }
 
         AnimationClip NewClip(string name, string assetId)
         {
