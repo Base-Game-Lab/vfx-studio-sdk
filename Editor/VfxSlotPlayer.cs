@@ -16,14 +16,14 @@ namespace BaseGameLab.Vfx.Editor
     {
         const string Menu = "Window/BaSe VFX/Slot Player";
         Vector2 scroll;
-        string filter = "";
+        [SerializeField] string filter = "";
+        [SerializeField] bool showInactive;
 
         [MenuItem(Menu)]
-        [MenuItem("GameObject/BaSe VFX/Slot Player", false, 30)]
         public static void Open() => GetWindow<VfxSlotPlayer>("Slot Player").Show();
 
-        void OnEnable() => EditorApplication.playModeStateChanged += Repaint;
-        void OnDisable() => EditorApplication.playModeStateChanged -= Repaint;
+        void OnEnable() { EditorApplication.playModeStateChanged += Repaint; Selection.selectionChanged += Repaint; }
+        void OnDisable() { EditorApplication.playModeStateChanged -= Repaint; Selection.selectionChanged -= Repaint; }
         void Repaint(PlayModeStateChange _) => Repaint();
         void OnInspectorUpdate() { if (Application.isPlaying) Repaint(); }
 
@@ -38,6 +38,19 @@ namespace BaseGameLab.Vfx.Editor
                 foreach (var root in scene.GetRootGameObjects())
                     foreach (var t in root.GetComponentsInChildren<Transform>(true))
                         if (t.name == VfxSlot.VfxNode && t.childCount > 0) nodes.Add(t);
+            }
+            return nodes;
+        }
+
+        /// <summary>What the window lists: VFX nodes in the scene (inactive ones only on request, since a card on the board is
+        /// active), the one holding the selection first.</summary>
+        internal static List<Transform> Listed(bool showInactive, Transform selected)
+        {
+            var nodes = VfxNodes().Where(n => showInactive || n.gameObject.activeInHierarchy).ToList();
+            if (selected != null)
+            {
+                var mine = nodes.FirstOrDefault(n => selected.IsChildOf(n.parent != null ? n.parent : n) || n.IsChildOf(selected));
+                if (mine != null) { nodes.Remove(mine); nodes.Insert(0, mine); }
             }
             return nodes;
         }
@@ -80,8 +93,9 @@ namespace BaseGameLab.Vfx.Editor
                 : "Enter Play mode to fire slots. Firing in Edit mode would change your scene.", MessageType.None);
             if (!Application.isPlaying && GUILayout.Button("Enter Play mode")) EditorApplication.EnterPlaymode();
             filter = EditorGUILayout.TextField("Card filter", filter);
+            showInactive = EditorGUILayout.Toggle("Show inactive", showInactive);
             scroll = EditorGUILayout.BeginScrollView(scroll);
-            foreach (var vfx in VfxNodes())
+            foreach (var vfx in Listed(showInactive, Selection.activeTransform))
             {
                 var card = VfxCapture.CardOf(vfx.GetChild(0).gameObject);
                 var label = card != null ? card.name : vfx.parent != null ? vfx.parent.name : vfx.name;

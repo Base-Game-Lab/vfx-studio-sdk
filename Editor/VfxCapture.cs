@@ -75,11 +75,8 @@ namespace BaseGameLab.Vfx.Editor
             var size = new FileInfo(path).Length / (1024f * 1024f);
             Debug.Log($"Captured {slot.name}: {m.frames} frames, {m.parts} parts, {size:0.0} MB.{notes} Drop {Path.GetFileName(path)} on VFX Studio.");
             var url = EditorPrefs.GetString(StudioPref, StudioDefault);
-            var choice = EditorUtility.DisplayDialogComplex("Captured " + card.name,
-                $"{Path.GetFileName(path)} is ready: {m.frames} frames, {m.parts} parts, {size:0.0} MB.{notes}\n\nDrop it on VFX Studio to choose an effect for this slot.",
-                "Open VFX Studio", "Done", Application.platform == RuntimePlatform.OSXEditor ? "Show in Finder" : "Show in Explorer");
-            if (choice == 0) { EditorUtility.RevealInFinder(path); Application.OpenURL(url); }
-            else if (choice == 2) EditorUtility.RevealInFinder(path);
+            // a window, not a dialog: it stays open, so the studio and the folder can both be opened from it
+            VfxCaptureReady.Show(path, card.name, slot.name, m.frames, m.parts, size, m.unseen, url);
         }
 
         static string Safe(string s) => new string(s.Select(c => char.IsLetterOrDigit(c) || c == '-' || c == '_' ? c : '_').ToArray());

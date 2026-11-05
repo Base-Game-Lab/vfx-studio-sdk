@@ -6,25 +6,25 @@ Effects from VFX Studio, as normal Unity prefabs. This package is editor only: n
 
 In Unity, open `Window > Package Manager`, press `+`, choose `Install package from git URL...` and paste:
 
-    https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.4
+    https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.5
 
 Or add one line to `Packages/manifest.json`, under `dependencies`:
 
-    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.4",
+    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.5",
 
 The repository is public, so no GitHub account or sign-in is needed; Unity only needs `git` installed. The same goes for any build
 machine. Being public grants no rights to use it: see License below.
 
 Check it worked: the Package Manager lists `BaSe Game Lab VFX` with the version you asked for.
 
-No git on a machine: we send `com.basegamelab.vfx-0.3.4.tgz`; copy it to `Packages` and use
-`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.4.tgz"` instead.
+No git on a machine: we send `com.basegamelab.vfx-0.3.5.tgz`; copy it to `Packages` and use
+`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.5.tgz"` instead.
 
 AllIn1Vfx Toolkit must be in the project. Materials reference its shader; the package does not bundle it.
 
 ## Update
 
-Change the tag at the end of the line, for example `#v0.3.2` to `#v0.3.4`, and return to Unity (or press `Update` on the package in
+Change the tag at the end of the line, for example `#v0.3.2` to `#v0.3.5`, and return to Unity (or press `Update` on the package in
 the Package Manager). Each version is a tag on this
 repository; the tag never moves, so every machine on the same line gets the same package.
 
@@ -33,8 +33,9 @@ repository; the tag never moves, so every machine on the same line gets the same
 1. In the **Hierarchy** (not the Project window: its `BaSe VFX` menu only has Use as Slot), right-click the slot the effect goes in, under the card's `VFX` node (for example `DefaultOnRevealVFX`), and choose
    `BaSe VFX > Send to VFX Studio...`. It plays the card in the editor (a progress bar counts the frames) and saves one `.vfxcapture`
    file. Your scene is not changed.
-2. Choose `Open VFX Studio` in the dialog, or go to https://portal.basegamelab.com/tools/vfx-studio/ (we give you a login), and drop the
-   file on the page. Your card opens on its own board with our effects already playing on it. Pick one, tune it, and use
+2. A `Capture ready` window shows the file and what the studio will note about it. It stays open: use `Open VFX Studio` (or go to
+   https://portal.basegamelab.com/tools/vfx-studio/; we give you a login) and `Show in Explorer`, then drag the file from the folder onto
+   the page. Your card opens on its own board with our effects already playing on it. Pick one, tune it, and use
    the Unity export (`Export > Unity for ...`).
 3. Drag the `.vfxnative` file into the **Project window**, into any folder under `Assets` (not onto the Scene view, which only takes
    files Unity has already imported). It goes into the slot it was captured from by itself. `Edit > Undo` or
@@ -122,7 +123,7 @@ package.
 
 ## See your slots play
 
-`Window > BaSe VFX > Slot Player` lists every card's slots in the open scene with a `Fire` button each. In Play mode, Fire turns
+`Window > BaSe VFX > Slot Player` lists the slots of every card on the board (the one you have selected first; `Show inactive` adds the rest) with a `Fire` button each. In Play mode, Fire turns
 the slot off and on and plays its particle systems, as your code would, so you can watch an effect without playing to that moment
 in the game. A slot that your code also recolours or fills in at runtime can still show nothing here.
 
