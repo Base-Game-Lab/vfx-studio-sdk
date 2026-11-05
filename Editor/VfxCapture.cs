@@ -268,7 +268,11 @@ namespace BaseGameLab.Vfx.Editor
                     // the moment, on a fixed clock
                     var clone = Clone(preview, made);
                     var cslot = clone.Find(slotPath);
-                    var systems = clone.GetComponentsInChildren<ParticleSystem>(true).Where(ps => ps.transform.parent == null || ps.transform.parent.GetComponentInParent<ParticleSystem>(true) == null).ToList();
+                    // The captured slot's systems run as before. Elsewhere on the card only what plays by itself runs: a sibling slot
+                    // the game starts with Play() (always on, not play-on-awake) stays still, as it does when this slot fires.
+                    var systems = clone.GetComponentsInChildren<ParticleSystem>(true)
+                        .Where(ps => ps.transform.parent == null || ps.transform.parent.GetComponentInParent<ParticleSystem>(true) == null)
+                        .Where(ps => ps.transform.IsChildOf(cslot) || ps.main.playOnAwake).ToList();
                     foreach (var ps in clone.GetComponentsInChildren<ParticleSystem>(true))
                     {
                         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);

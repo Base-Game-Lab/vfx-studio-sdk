@@ -6,25 +6,25 @@ Effects from VFX Studio, as normal Unity prefabs. This package is editor only: n
 
 In Unity, open `Window > Package Manager`, press `+`, choose `Install package from git URL...` and paste:
 
-    https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.5
+    https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.6
 
 Or add one line to `Packages/manifest.json`, under `dependencies`:
 
-    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.5",
+    "com.basegamelab.vfx": "https://github.com/Base-Game-Lab/vfx-studio-sdk.git#v0.3.6",
 
 The repository is public, so no GitHub account or sign-in is needed; Unity only needs `git` installed. The same goes for any build
 machine. Being public grants no rights to use it: see License below.
 
 Check it worked: the Package Manager lists `BaSe Game Lab VFX` with the version you asked for.
 
-No git on a machine: we send `com.basegamelab.vfx-0.3.5.tgz`; copy it to `Packages` and use
-`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.5.tgz"` instead.
+No git on a machine: we send `com.basegamelab.vfx-0.3.6.tgz`; copy it to `Packages` and use
+`"com.basegamelab.vfx": "file:com.basegamelab.vfx-0.3.6.tgz"` instead.
 
 AllIn1Vfx Toolkit must be in the project. Materials reference its shader; the package does not bundle it.
 
 ## Update
 
-Change the tag at the end of the line, for example `#v0.3.2` to `#v0.3.5`, and return to Unity (or press `Update` on the package in
+Change the tag at the end of the line, for example `#v0.3.2` to `#v0.3.6`, and return to Unity (or press `Update` on the package in
 the Package Manager). Each version is a tag on this
 repository; the tag never moves, so every machine on the same line gets the same package.
 
