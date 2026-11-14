@@ -30,7 +30,8 @@ November 2026:
 - **One test install, from this repo, by version tag.** A Unity project on Batu's Windows PC holds a customer's exported scene. On
   5 November 2026 Batu installed the package there from this repo at v0.3.0, the way that customer would, to find what trips a new
   user. Tags v0.3.1 to v0.3.9 were all released that day to fix what he hit, and the project now pins `#v0.3.9`. vfx-studio's
-  friction log of that day lists each snag and the version that fixed it: `docs/reports/2026-11-05-bgl250-roleplay/friction.md`.
+  friction log of that day, `docs/reports/2026-11-05-bgl250-roleplay/friction.md`, lists each snag and its status, with the
+  version that fixed it where one did. Not every snag was fixed: some are only logged, worked around or discussed.
 - **Other test projects do not use this repo.** A second project on that PC, and vfx-studio's own Unity test projects, load the
   package by a `file:` path from a vfx-studio working copy.
 - **No customer has it yet.** vfx-studio's records show no customer has been sent the package. Whether and when one gets it is
