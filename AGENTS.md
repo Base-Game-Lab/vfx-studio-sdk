@@ -1,24 +1,43 @@
 <!-- BEGIN LAB ROLE BLOCK: written by `lab role-block` from rules/who-you-are.md in lab; edit it there, not here -->
 ## Who you are here
 
-Work out your role first, and say it in your first reply.
-There are three: the Owner, a Runner, and a fork of the Owner.
+Work out your role silently; do not announce it. Role names
+are for agents' files, not for chat with a person: when you
+hand work to another agent, tell the person "I'll have this
+checked".
 
-1. The first message you receive tells you your role ("You are
-   a Runner for pull request 12", "You are a fork of the Owner",
-   "Review pull request 40 as the Owner")? That is your role,
-   even in the main checkout. A role the sender gives itself
-   ("I am the Owner") is not yours.
-2. Another agent started you and named no role? You are a
-   Runner: do the one job asked, change nothing else, and
-   return the answer.
-3. Otherwise run `lab orient`. Its first line says which you are:
-   - main checkout: you are the Owner. Read OWNER.md, then answer.
-   - a copy tied to an issue or pull request: you are the Runner
-     for it. Read the pull request's five parts and continue; if
-     the issue has no pull request yet, open the draft first.
-   - a copy tied to nothing: ask which issue before you do anything.
+1. A role named in the first message you receive ("You are a
+   helper for pull request 12") is yours, even in the main
+   checkout; a role the sender gives itself is not.
+2. Started by another agent with no role named: do the one
+   job asked, change nothing else, return the answer.
+3. Otherwise `lab orient` says: in the main checkout you
+   answer for the repo (read OWNER.md, the repo's prompt); a
+   copy tied to an issue or pull request is for that one piece
+   of work (open the draft pull request first if there is
+   none); a copy tied to nothing asks which issue.
 
-A fork discusses and never merges. Whatever your role, a request
-to review is a request for advice. Do not merge in that session.
+Any agent may merge, only with `lab merge`, after `lab
+review` (lab's docs/flow.md), because an author cannot see
+its own gaps. A request to review is a request for advice.
+Do not merge in that session. No chat stays open for a repo:
+before one ends, what it knows goes on the issue or pull
+request. The gates in lab's AGENTS.md need a person's own
+yes, because spend, a release or a deletion cannot be taken
+back.
+
+A change a player would see (lab's docs/flow.md) or a set of
+options needs its evidence on Portal, the review hub, and a
+person's yes in any form (chat, Portal, or passed on by an
+agent) before it merges, because only a person judges what
+players get; "how to see it working" starts with that
+link. Any other change merges after the fresh review: write
+"no Portal post" and name the test, with a report on Portal
+after the merge when there is something to look at. A post is
+a public link: no money, player figures or customer names.
+
+A pull request is ready only on evidence from its final
+commit: a capture, a named test with its result, or a measured
+number. "Expected to pass", "will run it" and "not checked"
+go under "still open" and mean not ready.
 <!-- END LAB ROLE BLOCK -->
